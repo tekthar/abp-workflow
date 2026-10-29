@@ -232,6 +232,31 @@ touches `RecordService.UpdateAsync` in that window says so first.
   an extension later, without touching the contract.
 - **The field engine as a package.** Field access is its own seam, so this can be decided later.
 
+### Amendment, 30 Oct 2026: the seams as built (S4)
+
+Built from the engine's side, the seams came out a little differently from the table above:
+
+- **Who may act is the item session's.** `WorkflowItemSession` answers the right to change the status, the actor's
+  groups, whether they manage the scope, delegation of assignments and service accounts; for approvals the host passes
+  an `ApprovalDecider` it has checked. There's no separate `IWorkflowActors`: the rights are the item's host's.
+- **No locks seam.** The worker claims a waiting visit with a conditional update, and a signal locks its row with
+  `FOR UPDATE`: both are plain Postgres, as every host has. `IWorkflowLocks` isn't needed.
+- **Scopes stay in the workflow service** for now (a project's workflows and the site's); `IWorkflowScopes` waits for a
+  host that needs other scopes.
+- **`IWorkflowSiteContexts`** gives the checks' `IWorkflowSiteContext` for a scope. The default checks nothing (every
+  account and group exists, every field is text); Toda's reads Guard and the field catalog.
+- **`IWorkflowExtensionSource`** leases extensions and status types, with a generation for caches. The default has the
+  host's own from DI; Toda's leases its plugins'.
+- **`IWorkflowEvents`** says a transition was taken, an item advanced and an approval decided. Toda keeps the default,
+  which tells no one: its records and assets say what happened in their own events.
+- **`IWorkflowItemStore`** also counts the items sitting in statuses (a published version can't drop one items sit in)
+  and is told of a publish (record types' status lists and asset schemas' status rows follow).
+- **The engine's own error codes** (`WorkflowErrorCodes`), with Toda's strings until its rename.
+- **Toda's side is a folder for now:** `src/Toda.Projects/Workflows/Integration` holds records as items, the record-only
+  built-ins, scripts, customer replies, record-type binding, config as code and Toda's adapters. The engine can't leave
+  `Toda.Projects` while its tables are in the projects context; with S5b it moves to `Toda.Workflows`, and the folder
+  becomes `Toda.Workflows.Integration`. Until then an architecture test holds the engine's files to the seams.
+
 ## Consequences
 
 - **ADR 0001 is amended for workflows,** as ADR 0087 amended it for Guard: they leave this repository before the SDK
