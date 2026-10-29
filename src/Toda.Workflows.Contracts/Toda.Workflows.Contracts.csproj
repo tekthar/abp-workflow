@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Public contracts of toda-workflow: the items workflows move, and the extensions and status types plugins add.</Description>
+  </PropertyGroup>
+
+  <!-- Nothing of Toda's, ABP's or EF Core's: workflows become a package (ADR 0089). An architecture test holds this. -->
+
+</Project>
