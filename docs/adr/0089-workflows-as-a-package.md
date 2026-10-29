@@ -1,6 +1,7 @@
 # 0089. Workflows as a package
 
-- **Status:** Proposed (the user chose the staged order on 29 Oct 2026; this record waits for their review)
+- **Status:** Accepted (the user chose the staged order and approved this record on 29 Oct 2026, with assets getting
+  workflows of their own right after the seam, and the marketplace waiting for the package)
 - **Date:** 2026-10-29
 - **Revisit at:** toda-workflow 1.0, or a fourth kind of item besides records, assets and the marketplace's
 
@@ -183,16 +184,14 @@ enough. **Assets get workflows of their own, opt-in per schema.** Retiring a lap
 - A schema with no workflow keeps setting statuses freely, as now. Asset statuses' categories (active, pending,
   inactive) map to the workflow's (to do, in progress, done) in the asset store, one way and fixed.
 
-The user decides this with the record. If they choose records driving assets, stage 2 becomes an action on
-records (`set-asset-status`), and the second item kind is the sample host's alone.
+The user chose this on 29 Oct, and asked for it next, straight after the seam.
 
 ### The marketplace
 
-The marketplace doesn't wait. Its publishing loop is built now with simple state machines behind one interface,
-`IReviewProcess`, and switches to the package when 0.1.0 is out. Its item kinds are `listing`, `listing-version` and
-`publisher`. Its store has no change sets, and its actors come from Guard. The AI review is a status type it
-registers. Its first version calls a model directly. Later it uses Toda's AI package, when that exists (handover,
-item 6).
+**The marketplace waits for the package** (the user, 29 Oct: building it right is the goal, not speed). There is no
+stop-gap state machine. Its item kinds will be `listing`, `listing-version` and `publisher`. Its store has no
+change sets, and its actors come from Guard. The AI review is a status type it registers over Toda's AI package,
+once that exists (handover, item 6).
 
 ### Steps
 
@@ -217,7 +216,10 @@ Code moves verbatim first. Behaviour changes come only in separate commits.
 | S7 | A sample host with its own item (a document in its own table) and Postgres integration tests, using only the defaults | M |
 | S8 | The designer as `@todahq/workflow-designer`: next-intl, `useApi` and the pickers injected | M |
 | S9 | A short freeze on `src/Toda.Workflows*`; the history copied to `todahq/toda-workflow`, audited, published as 0.1.0-preview.1 on nuget.org with Trusted Publishing, as toda-guard is | |
-| S10 | Toda switches to the packages and deletes `src/Toda.Workflows*`; the marketplace replaces `IReviewProcess`'s machines; the freeze lifts | |
+| S10 | Toda switches to the packages and deletes `src/Toda.Workflows*`; the marketplace adopts them; the freeze lifts | |
+
+The order is S1 to S6 first, so assets run workflows inside Toda. S7 to S10 follow with no date: nothing waits on
+them.
 
 S3 avoids a long freeze on Projects: each slice is small and lands while the agents and undo work go on. Whoever
 touches `RecordService.UpdateAsync` in that window says so first.
@@ -246,5 +248,4 @@ touches `RecordService.UpdateAsync` in that window says so first.
 - **To watch:**
   - the p95 after each S3 slice, since the runner adds a call boundary around a hot path;
   - transactions shared across two DbContexts under ABP's unit of work, especially `requiresNew`;
-  - the plugin-facing names, which can't change again after 0.1.0 without another rebuild;
-  - the marketplace's state machines, which must not grow into a second engine before S10.
+  - the plugin-facing names, which can't change again after 0.1.0 without another rebuild.
