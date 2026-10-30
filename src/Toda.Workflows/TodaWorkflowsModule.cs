@@ -20,6 +20,7 @@ public class TodaWorkflowsModule : AbpModule
         context.Services.TryAddSingleton<IWorkflowExtensionSource, ServiceWorkflowExtensions>();
         context.Services.TryAddTransient<IWorkflowSiteContexts, UncheckedWorkflowSiteContexts>();
         context.Services.TryAddTransient<IWorkflowEvents, NoWorkflowEvents>();
+        context.Services.TryAddSingleton<IWorkflowJoinSwitch, NeverJoins>();
         // Waiting steps advanced in the background, and old runs pruned.
         context.Services.AddHostedService<WorkflowWorker>();
         context.Services.AddHostedService<WorkflowTraceRetention>();

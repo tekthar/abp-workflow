@@ -28,13 +28,26 @@ public interface IWorkflowsDbContext : IEfCoreDbContext
 
 /// <summary>
 /// Runs the engine's work in a unit of work: the caller's when there is one, or a new one (a host's change it joins,
-/// the worker's own). The context is the host's, as it replaces <see cref="IWorkflowsDbContext"/>.
+/// the worker's own), unless the host's join switch is on (<see cref="IWorkflowJoinSwitch"/>). The context is the
+/// host's, as it replaces <see cref="IWorkflowsDbContext"/>.
 /// </summary>
-public class WorkflowsDb(IUnitOfWorkManager unitOfWorkManager, IDbContextProvider<IWorkflowsDbContext> provider) : ITransientDependency
+public class WorkflowsDb(IUnitOfWorkManager unitOfWorkManager, IDbContextProvider<IWorkflowsDbContext> provider, IWorkflowJoinSwitch joins)
+    : ITransientDependency
 {
 #pragma warning disable CA1068 // the token before isTransactional, as the hosts' module helpers have it
-    public async Task<T> RunAsync<T>(Func<IWorkflowsDbContext, Task<T>> work, bool requiresNew = false, CancellationToken cancellationToken = default,
-        bool isTransactional = false)
+    public Task<T> RunAsync<T>(Func<IWorkflowsDbContext, Task<T>> work, bool requiresNew = false, CancellationToken cancellationToken = default,
+        bool isTransactional = false) =>
+        InUnitOfWorkAsync(work, requiresNew && !joins.Joining, cancellationToken, isTransactional);
+
+    public Task RunAsync(Func<IWorkflowsDbContext, Task> work, bool requiresNew = false, CancellationToken cancellationToken = default, bool isTransactional = false) =>
+        RunAsync<bool>(async db => { await work(db); return true; }, requiresNew, cancellationToken, isTransactional);
+#pragma warning restore CA1068
+
+    /// <summary>Work in a unit of work of its own even where the host joins: what must outlive the caller's rollback (a stopped transition's trace).</summary>
+    public Task ApartAsync(Func<IWorkflowsDbContext, Task> work, CancellationToken cancellationToken = default) =>
+        InUnitOfWorkAsync(async db => { await work(db); return true; }, requiresNew: true, cancellationToken, isTransactional: false);
+
+    private async Task<T> InUnitOfWorkAsync<T>(Func<IWorkflowsDbContext, Task<T>> work, bool requiresNew, CancellationToken cancellationToken, bool isTransactional)
     {
         using IUnitOfWork uow = unitOfWorkManager.Begin(requiresNew: requiresNew, isTransactional: isTransactional);
         IWorkflowsDbContext db = await provider.GetDbContextAsync();
@@ -42,10 +55,6 @@ public class WorkflowsDb(IUnitOfWorkManager unitOfWorkManager, IDbContextProvide
         await uow.CompleteAsync(cancellationToken);
         return result;
     }
-
-    public Task RunAsync(Func<IWorkflowsDbContext, Task> work, bool requiresNew = false, CancellationToken cancellationToken = default, bool isTransactional = false) =>
-        RunAsync<bool>(async db => { await work(db); return true; }, requiresNew, cancellationToken, isTransactional);
-#pragma warning restore CA1068
 }
 
 /// <summary>The engine's model: <c>builder.ConfigureWorkflows()</c> in a host context's <c>OnModelCreating</c>.</summary>

@@ -40,6 +40,22 @@ public sealed class ServiceWorkflowExtensions : IWorkflowExtensionSource
 }
 
 /// <summary>
+/// Whether the engine's work that asks for a unit of work of its own (moving an item on from a waiting step, a signal)
+/// joins the caller's instead (ADR 0090): a host whose callers make several changes as one transaction says so while
+/// they do, as Toda does for a plugin's call. The default never joins.
+/// </summary>
+public interface IWorkflowJoinSwitch
+{
+    bool Joining { get; }
+}
+
+/// <summary>The default: the engine's own units of work are always its own.</summary>
+public sealed class NeverJoins : IWorkflowJoinSwitch
+{
+    public bool Joining => false;
+}
+
+/// <summary>
 /// What a workflow's checks look up when it's saved or imported (ADR 0089): whether the people, groups and fields its
 /// settings name exist in a scope (a project; none for a site workflow). Only the host knows them.
 /// </summary>

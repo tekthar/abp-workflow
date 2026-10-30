@@ -57,12 +57,12 @@ public class WorkflowTraces(WorkflowsDb workflowsDb, ILogger<WorkflowTraces> log
         try
         {
             (WorkflowRun run, List<WorkflowRunStep> steps) = trace.ToRows(outcome, stopped.Message, null, null);
-            await workflowsDb.RunAsync(async db =>
+            await workflowsDb.ApartAsync(async db =>
             {
                 db.WorkflowRuns.Add(run);
                 db.WorkflowRunSteps.AddRange(steps);
                 await db.SaveChangesAsync();
-            }, requiresNew: true);
+            });
             trace.Saved = true;
         }
         catch (Exception ex)
