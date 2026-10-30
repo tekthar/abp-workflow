@@ -272,6 +272,14 @@ join. So the engine ships as ABP's modules do:
   Toda's live in the projects migrations. A host that wants them apart can still map them into a context of its own:
   it then gives up joining them with its items.
 
+### Amendment, 30 Oct 2026: Toda's side stays in Toda.Projects (S5c)
+
+The engine is `src/Toda.Workflows`, a module of its own (`TodaWorkflowsModule`) with nothing of Toda's in it. Toda's
+side doesn't become `Toda.Workflows.Integration`: records are Toda's items, and `RecordService` and
+`ProjectsDbContext` call the record store, session and type sync directly, so a separate project would need
+`Toda.Projects` while `Toda.Projects` needs it. Those files stay in `src/Toda.Projects/Workflows`, beside the records
+they adapt, as assets' adapters stay in `Toda.Assets`. A host's side of the engine lives with the host's items.
+
 ## Consequences
 
 - **ADR 0001 is amended for workflows,** as ADR 0087 amended it for Guard: they leave this repository before the SDK
