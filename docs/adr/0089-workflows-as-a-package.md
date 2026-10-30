@@ -257,6 +257,21 @@ Built from the engine's side, the seams came out a little differently from the t
   `Toda.Projects` while its tables are in the projects context; with S5b it moves to `Toda.Workflows`, and the folder
   becomes `Toda.Workflows.Integration`. Until then an architecture test holds the engine's files to the seams.
 
+### Amendment, 30 Oct 2026: the engine's tables in the host's context (S5b)
+
+The engine doesn't get a `WorkflowsDbContext` of its own. A host's queries read its tables beside the host's own: RQL's
+`approver = currentUser()` is one SQL query over records, waiting approvals and decisions, which two contexts can't
+join. So the engine ships as ABP's modules do:
+
+- **`IWorkflowsDbContext`**, an `IEfCoreDbContext` with the six tables, and **`ConfigureWorkflows(builder)`**, the
+  mapping a host applies in its own `OnModelCreating`.
+- **The host's context replaces it** (`[ReplaceDbContext]`, `ReplaceDbContext<IWorkflowsDbContext>()`): the engine's
+  provider hands out the host's context, the same instance in the same change. The engine's `WorkflowsDb` runs its own
+  work (the worker, signals, the tracer) in a unit of work, as the hosts' module helpers do.
+- **The host's migrations make the tables**, in schema `workflows`; the engine keeps its stored JSON's format its own.
+  Toda's live in the projects migrations. A host that wants them apart can still map them into a context of its own:
+  it then gives up joining them with its items.
+
 ## Consequences
 
 - **ADR 0001 is amended for workflows,** as ADR 0087 amended it for Guard: they leave this repository before the SDK
