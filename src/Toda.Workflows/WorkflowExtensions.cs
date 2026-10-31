@@ -50,7 +50,7 @@ public class WorkflowExtensions(
     public async Task<List<WorkflowExtensionInfo>> ListAsync()
     {
         await using IWorkflowLease<IWorkflowExtension> lease = source.Lease<IWorkflowExtension>(services);
-        return lease.Items.Select(i => new WorkflowExtensionInfo(TypeOf(i.PluginKey, i.Instance), i.Instance.Kind, i.Instance.Title, i.Instance.Description,
+        return lease.Items.Select(i => new WorkflowExtensionInfo(TypeOf(i.PluginKey, i.Instance), WorkflowExtensionKinds.Current(i.Instance.Kind), i.Instance.Title, i.Instance.Description,
                 JsonDocument.Parse(i.Instance.SettingsSchema).RootElement.Clone(), i.Instance.EditComponent, i.PluginKey))
             .OrderBy(i => i.Kind).ThenBy(i => i.Type).ToList();
     }
@@ -232,9 +232,9 @@ public class WorkflowExtensions(
                 continue;
             }
 
-            if (extension.Kind != kind)
+            if (WorkflowExtensionKinds.Current(extension.Kind) != kind)
             {
-                problems.Add($"{where} is a {extension.Kind}, not a {kind}.");
+                problems.Add($"{where} is {Article(WorkflowExtensionKinds.Current(extension.Kind))}, not {Article(kind)}.");
                 continue;
             }
 
@@ -427,6 +427,8 @@ public class WorkflowExtensions(
 
     private static IWorkflowExtension? Find(IWorkflowLease<IWorkflowExtension> lease, string type) =>
         lease.Items.FirstOrDefault(i => TypeOf(i.PluginKey, i.Instance) == type).Instance;
+
+    private static string Article(string kind) => kind.Length > 0 && "aeiou".Contains(kind[0]) ? $"an {kind}" : $"a {kind}";
 
     private static string TypeOf(string? pluginKey, IWorkflowExtension extension) => WorkflowCatalog.TypeName(pluginKey, extension.Key);
 

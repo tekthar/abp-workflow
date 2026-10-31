@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Text.Json;
 using Volo.Abp;
 
 namespace Toda.Workflows.Tests;
@@ -44,6 +45,30 @@ public class EngineTests
         UserFriendlyException wrong = Assert.Throws<UserFriendlyException>(() => WorkflowEngine.Resolve(Drawn, "draft", "approve", null, "Memo"));
         Assert.Contains("From here: submit (to review)", wrong.Message);
         Assert.Throws<UserFriendlyException>(() => WorkflowEngine.Resolve(Drawn, "draft", null, "done", "Memo"));
+    }
+
+    [Fact]
+    public void A_transition_is_read_under_its_earlier_names_and_written_under_its_own()
+    {
+        JsonSerializerOptions json = new(JsonSerializerDefaults.Web);
+        WorkflowTransition read = JsonSerializer.Deserialize<WorkflowTransition>(
+            """{"number":1,"key":"done","names":{"en":"Done"},"from":["review"],"to":"done","validators":[{"type":"builtin:required"}],"postFunctions":[{"type":"builtin:set-field"}]}""", json)!;
+        Assert.Equal(["builtin:required"], read.Checks.Select(u => u.Type));
+        Assert.Equal(["builtin:set-field"], read.Actions.Select(u => u.Type));
+
+        string written = JsonSerializer.Serialize(read, json);
+        Assert.Contains("\"checks\":", written);
+        Assert.Contains("\"actions\":", written);
+        Assert.DoesNotContain("validators", written);
+        Assert.DoesNotContain("postFunctions", written);
+    }
+
+    [Fact]
+    public void Extensions_built_against_the_earlier_kind_names_are_read_as_checks_and_actions()
+    {
+        Assert.Equal(WorkflowExtensionKinds.Check, WorkflowExtensionKinds.Current("validator"));
+        Assert.Equal(WorkflowExtensionKinds.Action, WorkflowExtensionKinds.Current("postFunction"));
+        Assert.Equal(WorkflowExtensionKinds.Condition, WorkflowExtensionKinds.Current(WorkflowExtensionKinds.Condition));
     }
 
     [Fact]

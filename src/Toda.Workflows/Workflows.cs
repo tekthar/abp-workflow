@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Volo.Abp.Domain.Entities;
 
 namespace Toda.Workflows;
@@ -178,6 +179,16 @@ public sealed record WorkflowTransition(int Number, string Key, Dictionary<strin
     public List<ExtensionUse> Checks { get; init; } = [];
     public List<ExtensionUse> Actions { get; init; } = [];
 
+    /// <summary>
+    /// The earlier names of <see cref="Checks"/> and <see cref="Actions"/> ("validators", "postFunctions"), read so a
+    /// workflow saved or exported under them still loads whole; never written.
+    /// </summary>
+    [JsonInclude, JsonPropertyName("validators"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    private List<ExtensionUse>? FormerChecks { get => null; init => Checks = value ?? Checks; }
+
+    [JsonInclude, JsonPropertyName("postFunctions"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    private List<ExtensionUse>? FormerActions { get => null; init => Actions = value ?? Actions; }
+
     /// <summary>Fields the person fills in when taking the transition (layout names: "resolution", "assignee", "cost").</summary>
     public List<string> Fields { get; init; } = [];
 
@@ -190,7 +201,7 @@ public sealed record WorkflowTransition(int Number, string Key, Dictionary<strin
 public sealed class CamelCaseEnumConverter<TEnum>() : System.Text.Json.Serialization.JsonStringEnumConverter<TEnum>(JsonNamingPolicy.CamelCase)
     where TEnum : struct, Enum;
 
-/// <summary>One use of a workflow extension: its type ("builtin:field-value", "plugin-key:check") and settings.</summary>
+/// <summary>One use of a workflow extension: its type ("builtin:field-value", "plugin-key:quota") and settings.</summary>
 public sealed record ExtensionUse(string Type, JsonElement? Settings = null);
 
 /// <summary>Conditions that must all hold ("all") or one of which must ("any"); groups nest.</summary>

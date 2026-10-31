@@ -2,18 +2,32 @@ using System.Text.Json;
 
 namespace Toda.Workflows;
 
-/// <summary>The kinds of workflow extension (ADR 0019).</summary>
+/// <summary>
+/// The kinds of workflow extension (ADR 0019): a condition decides whether a transition is offered, a check whether
+/// what the person filled in lets it through, and an action does something once the item has moved.
+/// </summary>
 public static class WorkflowExtensionKinds
 {
     public const string Condition = "condition";
     public const string Check = "check";
     public const string Action = "action";
+
+    /// <summary>
+    /// The kind under its current name: extensions built against the earlier names say "validator" for a check and
+    /// "postFunction" for an action, and the engine reads them as the same.
+    /// </summary>
+    public static string Current(string kind) => kind switch
+    {
+        "validator" => Check,
+        "postFunction" => Action,
+        _ => kind,
+    };
 }
 
 /// <summary>
-/// A workflow extension (ADR 0019, extension point <c>workflow.extension@1</c>): a condition, a check or a
-/// action. A host's built-ins implement it too. Its type in a workflow is "{plugin key}:{Key}" ("builtin:…" for
-/// the host's own). An extension that throws stops the transition with a message naming it; nothing is skipped.
+/// A workflow extension (ADR 0019, extension point <c>workflow.extension@1</c>): a condition, a check or an action. A
+/// host's built-ins implement it too. Its type in a workflow is "{plugin key}:{Key}" ("builtin:…" for the host's own).
+/// An extension that throws stops the transition with a message naming it; nothing is skipped.
 /// </summary>
 public interface IWorkflowExtension
 {
