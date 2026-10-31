@@ -289,6 +289,16 @@ A host still writes an `IWorkflowItemStore` and a `WorkflowItemSession` of its o
 contract gives (records' children and links, assets' history), as Toda's records and assets do. A host's own status
 types are named `builtin:{key}`, as its own extensions are.
 
+### Amendment, 31 Oct 2026: conditions, checks and actions
+
+Before the first release, a transition's hooks are conditions, checks and actions. What were validators are checks; what
+were post-functions are actions, the same word an automated status uses for what it runs. The kinds are `condition`,
+`check` and `action`; a transition's lists are `checks` and `actions`; a run's phases are `check` and `action` (a
+transition's action has no status key, an automated status's has its own). The engine still reads the earlier names
+("validators", "postFunctions", and the kinds "validator" and "postFunction" from extensions built before), so exports,
+backups and plugins made earlier keep working; Toda's migration `WorkflowHookNames` renames what it stores, and its
+script check is `builtin:script-check`.
+
 ## Consequences
 
 - **ADR 0001 is amended for workflows,** as ADR 0087 amended it for Guard: they leave this repository before the SDK
