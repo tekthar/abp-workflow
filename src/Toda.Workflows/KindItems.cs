@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
 
@@ -21,9 +22,10 @@ public sealed record WorkflowItemKindInfo(string Kind, string? Plugin, string Ke
 /// each call and lets it go at once, inside the caller's unit of work, so the plugin's context joins the change and
 /// nothing of the plugin's outlives the call. The item stays open on the host's side, in a <see cref="KindItemSession"/>.
 /// </summary>
-public class KindItems(IWorkflowExtensionSource source, IServiceProvider services, IWorkflowPeople people) : ITransientDependency
+public class KindItems(IWorkflowExtensionSource source, IServiceProvider services) : ITransientDependency
 {
-    internal IWorkflowPeople People => people;
+    // Asked for when an item needs it, not when the engine's services are made: they're made on every change's path.
+    internal IWorkflowPeople People => services.GetRequiredService<IWorkflowPeople>();
 
     /// <summary>Every kind the enabled plugins (and the host) offer now.</summary>
     public async Task<List<WorkflowItemKindInfo>> CatalogAsync()

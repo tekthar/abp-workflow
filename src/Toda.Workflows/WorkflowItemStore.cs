@@ -39,8 +39,10 @@ public interface IWorkflowItemStore
 /// The stores there are, by kind: the host's own from DI, and a plugin's kind (ADR 0090) through the engine's bridge.
 /// Read when needed, since the hosts' services take transitions through the runner themselves.
 /// </summary>
-public class WorkflowItemStores(IServiceProvider services, KindItems kinds) : ITransientDependency
+public class WorkflowItemStores(IServiceProvider services) : ITransientDependency
 {
+    private KindItems Kinds => services.GetRequiredService<KindItems>();
+
     /// <summary>
     /// Every store there is: what publishing asks about the items a workflow moves. Plugins' kinds are those some
     /// workflow is bound for, their plugin on or not.
@@ -50,7 +52,7 @@ public class WorkflowItemStores(IServiceProvider services, KindItems kinds) : IT
         List<IWorkflowItemStore> all = [.. services.GetServices<IWorkflowItemStore>()];
         foreach (string kind in await db.WorkflowBindings.AsNoTracking().Select(b => b.ItemKind).Distinct().ToListAsync(cancellationToken))
         {
-            all.Add(new KindItemStore(kind, await kinds.NounAsync(kind), kinds));
+            all.Add(new KindItemStore(kind, await Kinds.NounAsync(kind), Kinds));
         }
 
         return all;
@@ -58,6 +60,6 @@ public class WorkflowItemStores(IServiceProvider services, KindItems kinds) : IT
 
     public IWorkflowItemStore For(string kind) =>
         services.GetServices<IWorkflowItemStore>().FirstOrDefault(s => s.Kind == kind)
-        ?? (WorkflowItemKindNames.IsPlugin(kind) ? new KindItemStore(kind, kind, kinds) : null)
+        ?? (WorkflowItemKindNames.IsPlugin(kind) ? new KindItemStore(kind, kind, Kinds) : null)
         ?? throw new InvalidOperationException($"Nothing here moves '{kind}' items through workflows.");
 }
