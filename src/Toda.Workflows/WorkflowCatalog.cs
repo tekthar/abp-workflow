@@ -48,15 +48,15 @@ public class WorkflowCatalog(IWorkflowExtensionSource source, IServiceProvider s
             {
                 foreach ((IWorkflowStatusType type, string? plugin) in lease.Items.Select(i => (i.Instance, i.PluginKey)))
                 {
-                    if (plugin is null || type.Mode is not (StatusTypeModes.Sync or StatusTypeModes.Async))
+                    if (type.Mode is not (StatusTypeModes.Sync or StatusTypeModes.Async))
                     {
-                        logger.LogWarning("A status type {Type} from {Plugin} is skipped: it needs a plugin and a mode of sync or async.", type.Key, plugin);
+                        logger.LogWarning("A status type {Type} from {Plugin} is skipped: it needs a mode of sync or async.", type.Key, plugin ?? "the host");
                         continue;
                     }
 
                     try
                     {
-                        string key = $"{plugin}:{type.Key}";
+                        string key = TypeName(plugin, type.Key);
                         built[key] = new StatusTypeInfo(key, type.Mode, [.. type.Exits], type.Title, type.Description, [.. type.OptionalExits], plugin,
                             JsonDocument.Parse(type.SettingsSchema).RootElement.Clone(), type.EditComponent, type.RoutesSetting);
                     }
@@ -76,8 +76,14 @@ public class WorkflowCatalog(IWorkflowExtensionSource source, IServiceProvider s
         }
     }
 
-    /// <summary>Whether a type is a plugin's ("{plugin}:{key}").</summary>
+    /// <summary>Whether a type is a plugin's ("{plugin}:{key}") or the host's own ("builtin:{key}"), not one of the engine's.</summary>
     public static bool IsPluginType(string type) => type.Contains(':', StringComparison.Ordinal);
+
+    /// <summary>
+    /// A status type's or extension's name in workflows: "{plugin}:{key}" for a plugin's, "builtin:{key}" for the host's
+    /// own (registered in its services, no plugin).
+    /// </summary>
+    public static string TypeName(string? plugin, string key) => $"{plugin ?? WorkflowExtensions.BuiltinPrefix}:{key}";
 
     private static readonly Dictionary<string, StatusTypeInfo> BuiltIn = new(StringComparer.Ordinal)
     {

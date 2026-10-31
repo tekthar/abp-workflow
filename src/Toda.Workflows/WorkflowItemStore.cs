@@ -58,8 +58,10 @@ public class WorkflowItemStores(IServiceProvider services) : ITransientDependenc
         return all;
     }
 
+    /// <summary>
+    /// The store for a kind: the host's own for it, else the bridge to an <see cref="IWorkflowItemKind"/> (a plugin's, or
+    /// one the host registered itself), which says the kind is off when there's none.
+    /// </summary>
     public IWorkflowItemStore For(string kind) =>
-        services.GetServices<IWorkflowItemStore>().FirstOrDefault(s => s.Kind == kind)
-        ?? (WorkflowItemKindNames.IsPlugin(kind) ? new KindItemStore(kind, kind, Kinds) : null)
-        ?? throw new InvalidOperationException($"Nothing here moves '{kind}' items through workflows.");
+        services.GetServices<IWorkflowItemStore>().FirstOrDefault(s => s.Kind == kind) ?? new KindItemStore(kind, kind, Kinds);
 }

@@ -90,7 +90,7 @@ public class WorkflowExtensions(
         await using IWorkflowLease<IWorkflowStatusType> types = source.Lease<IWorkflowStatusType>(services);
         foreach (WorkflowStatus status in definition.Statuses.Where(s => WorkflowCatalog.IsPluginType(s.Type)))
         {
-            if (types.Items.FirstOrDefault(i => i.PluginKey is { } p && $"{p}:{i.Instance.Key}" == status.Type).Instance?.AppliesTo is { } kinds && !kinds.Contains(kind))
+            if (types.Items.FirstOrDefault(i => WorkflowCatalog.TypeName(i.PluginKey, i.Instance.Key) == status.Type).Instance?.AppliesTo is { } kinds && !kinds.Contains(kind))
             {
                 problems.Add($"Status '{status.Key}' is a {status.Type}, which works on {ExtensionHelpers.List(kinds)} only.");
             }
@@ -195,7 +195,7 @@ public class WorkflowExtensions(
             case var type when WorkflowCatalog.IsPluginType(type):
             {
                 await using IWorkflowLease<IWorkflowStatusType> lease = source.Lease<IWorkflowStatusType>(services);
-                IWorkflowStatusType? plugin = lease.Items.FirstOrDefault(i => i.PluginKey is { } p && $"{p}:{i.Instance.Key}" == type).Instance;
+                IWorkflowStatusType? plugin = lease.Items.FirstOrDefault(i => WorkflowCatalog.TypeName(i.PluginKey, i.Instance.Key) == type).Instance;
                 if (plugin is null)
                 {
                     problems.Add($"{where} has type '{type}', which isn't available here.");
@@ -428,7 +428,7 @@ public class WorkflowExtensions(
     private static IWorkflowExtension? Find(IWorkflowLease<IWorkflowExtension> lease, string type) =>
         lease.Items.FirstOrDefault(i => TypeOf(i.PluginKey, i.Instance) == type).Instance;
 
-    private static string TypeOf(string? pluginKey, IWorkflowExtension extension) => $"{pluginKey ?? BuiltinPrefix}:{extension.Key}";
+    private static string TypeOf(string? pluginKey, IWorkflowExtension extension) => WorkflowCatalog.TypeName(pluginKey, extension.Key);
 
     private static string Missing(ExtensionUse use) => $"The workflow uses '{use.Type}', which isn't available here. Ask an admin to enable it or take it out of the workflow.";
 

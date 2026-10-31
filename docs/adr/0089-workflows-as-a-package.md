@@ -280,6 +280,15 @@ side doesn't become `Toda.Workflows.Integration`: records are Toda's items, and 
 `Toda.Projects` while `Toda.Projects` needs it. Those files stay in `src/Toda.Projects/Workflows`, beside the records
 they adapt, as assets' adapters stay in `Toda.Assets`. A host's side of the engine lives with the host's items.
 
+### Amendment, 31 Oct 2026: a host's own items through the item-kind contract (S7)
+
+ADR 0090's `IWorkflowItemKind` is the simplest way for any host to move its own items, not only for plugins. A kind a
+host registers in its services is named by its key alone ("document"); a plugin's is "{plugin}:{key}". The engine's
+`WorkflowItems` does the rest for either: start, transitions, approvals, runs and bindings, in the engine's change.
+A host still writes an `IWorkflowItemStore` and a `WorkflowItemSession` of its own when its items need more than the
+contract gives (records' children and links, assets' history), as Toda's records and assets do. A host's own status
+types are named `builtin:{key}`, as its own extensions are.
+
 ## Consequences
 
 - **ADR 0001 is amended for workflows,** as ADR 0087 amended it for Guard: they leave this repository before the SDK

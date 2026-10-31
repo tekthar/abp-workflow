@@ -107,7 +107,7 @@ public class PluginStatusTypes(IWorkflowExtensionSource source, IServiceProvider
         };
 
     private static IWorkflowStatusType? Find(IWorkflowLease<IWorkflowStatusType> lease, string type) =>
-        lease.Items.FirstOrDefault(i => i.PluginKey is { } plugin && $"{plugin}:{i.Instance.Key}" == type).Instance;
+        lease.Items.FirstOrDefault(i => WorkflowCatalog.TypeName(i.PluginKey, i.Instance.Key) == type).Instance;
 
     private sealed class StepContext : WorkflowStatusContext
     {

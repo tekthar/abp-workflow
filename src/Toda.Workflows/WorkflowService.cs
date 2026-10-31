@@ -205,6 +205,36 @@ public partial class WorkflowService(WorkflowCatalog catalog, WorkflowExtensions
         }
     }
 
+    /// <summary>
+    /// Makes a workflow from a definition and publishes it as version 1, in the caller's change: its key unique in the
+    /// scope (null: the site), the definition checked as publishing checks one (shape, status types, extensions and their
+    /// settings, exits). The caller saves the change. For a host's configuration as code, or its own admin API.
+    /// </summary>
+    public async Task<Workflow> CreateAsync(IWorkflowsDbContext db, Guid? scopeId, string key, WorkflowDefinition definition, Guid actorId,
+        IReadOnlyDictionary<string, string>? names = null, CancellationToken cancellationToken = default)
+    {
+        if (!WorkflowKeys.Key().IsMatch(key))
+        {
+            throw new UserFriendlyException($"'{key}' can't be a workflow's key: a lowercase letter, then lowercase letters, digits and dashes.");
+        }
+
+        if (await db.Workflows.AnyAsync(w => w.ScopeId == scopeId && w.Key == key, cancellationToken))
+        {
+            throw new UserFriendlyException($"There's already a workflow '{key}' here.", WorkflowErrorCodes.Conflict);
+        }
+
+        (WorkflowDefinition? normalized, List<string> problems) = await CheckReplacementAsync(db, null, scopeId, key, definition, cancellationToken);
+        if (normalized is null || problems.Count > 0)
+        {
+            throw new UserFriendlyException(string.Join(" ", problems));
+        }
+
+        Workflow workflow = new(Guid.NewGuid(), scopeId, key, normalized) { Names = names is null ? [] : new Dictionary<string, string>(names) };
+        db.Workflows.Add(workflow);
+        db.WorkflowVersions.Add(new WorkflowVersion(Guid.NewGuid(), workflow.Id, workflow.Version, normalized, actorId == Guid.Empty ? null : actorId));
+        return workflow;
+    }
+
     /// <summary>Replaces a workflow's published definition (already checked) as its next version.</summary>
     public async Task ReplaceAsync(IWorkflowsDbContext db, Workflow workflow, WorkflowDefinition definition, Guid actorId, CancellationToken cancellationToken)
     {
