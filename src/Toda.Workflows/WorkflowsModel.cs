@@ -64,11 +64,22 @@ public static class WorkflowsModel
     /// <summary>The engine's schema, apart from any host's (ADR 0089).</summary>
     public const string Schema = "workflows";
 
-    /// <summary>How the engine stores its JSON (definitions, names): its own contract, the format number inside (ADR 0089).</summary>
-    internal static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
+    /// <summary>
+    /// How the engine reads and writes its JSON (definitions, names): its own contract, the format number inside (ADR
+    /// 0089). A host that reads or writes a <see cref="WorkflowDefinition"/> itself uses these, so categories read as
+    /// "inProgress". Read-only.
+    /// </summary>
+    public static JsonSerializerOptions Json { get; } = CreateJson();
+
+    private static JsonSerializerOptions CreateJson()
     {
-        Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
-    };
+        JsonSerializerOptions options = new(JsonSerializerDefaults.Web)
+        {
+            Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
+        };
+        options.MakeReadOnly(populateMissingResolver: true);
+        return options;
+    }
 
     /// <summary>A kind's longest name: a plugin's key (49 at most) and its kind's (32), with room to spare (ADR 0090).</summary>
     public const int ItemKindLength = 128;

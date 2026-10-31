@@ -6,13 +6,15 @@ namespace Toda.Workflows.SampleHost;
 
 /// <summary>
 /// A check of the host's own: a document needs a body before it's sent on. Registered in DI with no plugin, its
-/// type in workflows is "builtin:has-body", beside the engine's built-ins.
+/// type in workflows is "builtin:has-body", beside the engine's built-ins. It works on documents only, so binding a
+/// workflow that uses it to another kind is refused.
 /// </summary>
 [ExposeServices(typeof(IWorkflowExtension))]
 public sealed class HasBodyCheck : IWorkflowExtension, ITransientDependency
 {
     public string Key => "has-body";
     public string Kind => WorkflowExtensionKinds.Check;
+    public IReadOnlyList<string> AppliesTo => [DocumentKind.Kind];
     public string Title => "Has a body";
     public string Description => "The document has some text in its body.";
     public string SettingsSchema => """{"type":"object","properties":{"minLength":{"type":"integer","title":"At least this many characters"}}}""";

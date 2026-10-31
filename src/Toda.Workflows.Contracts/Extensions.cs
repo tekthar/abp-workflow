@@ -79,8 +79,11 @@ public interface IWorkflowSiteContext
     /// <summary>The scope the workflow belongs to (a project, an asset schema); null for a site workflow.</summary>
     Guid? ScopeId { get; }
 
-    /// <summary>The kind of item the workflow moves (<see cref="WorkflowItemKinds"/>).</summary>
-    string ItemKind => WorkflowItemKinds.Record;
+    /// <summary>
+    /// The kind of item the workflow moves (<see cref="WorkflowItemKinds"/>), when the host knows it as the workflow is
+    /// saved; null when it doesn't. A workflow isn't tied to a kind until it's bound, so binding checks it either way.
+    /// </summary>
+    string? ItemKind => null;
 
     Task<bool> GroupExistsAsync(Guid id, CancellationToken cancellationToken);
     Task<bool> AccountExistsAsync(Guid id, CancellationToken cancellationToken);

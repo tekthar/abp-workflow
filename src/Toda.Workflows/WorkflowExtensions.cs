@@ -238,9 +238,9 @@ public class WorkflowExtensions(
                 continue;
             }
 
-            if (extension.AppliesTo is { } kinds && !kinds.Contains(site.ItemKind))
+            if (extension.AppliesTo is { } kinds && site.ItemKind is { } itemKind && !kinds.Contains(itemKind))
             {
-                problems.Add($"{where} works on {ExtensionHelpers.List(kinds)} only, not on {site.ItemKind}s.");
+                problems.Add($"{where} works on {ExtensionHelpers.List(kinds)} only, not on {itemKind}s.");
                 continue;
             }
 
