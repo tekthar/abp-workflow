@@ -47,8 +47,17 @@ public class PluginStatusTypes(IWorkflowExtensionSource source, IServiceProvider
             return null;
         }
 
-        WorkflowItemSession item = (await stores.For(activity.ItemKind).OpenAsSystemAsync(db, activity.ItemId, cancellationToken))?.Item
-            ?? throw new InvalidOperationException($"The item waiting in step {activity.Id} is gone.");
+        WorkflowItemSession item;
+        try
+        {
+            item = (await stores.For(activity.ItemKind).OpenAsSystemAsync(db, activity.ItemId, cancellationToken))?.Item
+                ?? throw new InvalidOperationException($"The item waiting in step {activity.Id} is gone.");
+        }
+        catch (WorkflowItemKindOffException)
+        {
+            return null; // the item's plugin is off (ADR 0090): it keeps waiting, as for a type whose plugin is off
+        }
+
         JsonElement? state = activity.StateJson is { } json ? JsonDocument.Parse(json).RootElement.Clone() : null;
         // What the step says while it works (an AI step's skill, version and reasons) is a run of its own in the record's
         // workflow history, saved with this change.

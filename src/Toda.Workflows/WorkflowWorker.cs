@@ -16,6 +16,8 @@ public class WorkflowWorker(IServiceScopeFactory scopes, ILogger<WorkflowWorker>
 {
     public const int MaxAttempts = 5;
 
+    private long _generation = -1;
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         using PeriodicTimer timer = new(TimeSpan.FromSeconds(2));
@@ -38,6 +40,7 @@ public class WorkflowWorker(IServiceScopeFactory scopes, ILogger<WorkflowWorker>
         WorkflowsDb workflowsDb = scope.ServiceProvider.GetRequiredService<WorkflowsDb>();
         WorkflowRunner runner = scope.ServiceProvider.GetRequiredService<WorkflowRunner>();
         WorkflowSignals signals = scope.ServiceProvider.GetRequiredService<WorkflowSignals>();
+        await WakeAsync(workflowsDb, scope.ServiceProvider.GetRequiredService<IWorkflowExtensionSource>().Generation, cancellationToken);
         DateTime now = DateTime.UtcNow;
         List<Guid> due = await workflowsDb.RunAsync(db => db.WorkflowActivities.AsNoTracking()
             .Where(a => (a.State == WorkflowActivityStates.Pending || a.State == WorkflowActivityStates.Completed) && a.NextSweepAt <= now)
@@ -51,8 +54,17 @@ public class WorkflowWorker(IServiceScopeFactory scopes, ILogger<WorkflowWorker>
 
             if (activity.State == WorkflowActivityStates.Pending && WorkflowCatalog.IsPluginType(activity.StatusType))
             {
-                // A plugin's step (ADR 0022): its time came; resuming moves the record when it comes to an exit.
-                await signals.ResumeAsync(id, null, cancellationToken);
+                // A plugin's step (ADR 0022): its time came; resuming moves the item when it comes to an exit. One that fails
+                // waits for its next sweep; the others go on.
+                try
+                {
+                    await signals.ResumeAsync(id, null, cancellationToken);
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    logger.LogWarning("Resuming step {Status} failed: {Error}", activity.StatusKey, ex.Message);
+                }
+
                 continue;
             }
 
@@ -81,9 +93,34 @@ public class WorkflowWorker(IServiceScopeFactory scopes, ILogger<WorkflowWorker>
                     row.NextSweepAt = DateTime.UtcNow.AddSeconds(30 * Math.Pow(2, row.Attempts));
                     await db.SaveChangesAsync(cancellationToken);
                 }, requiresNew: true, cancellationToken: cancellationToken);
-                logger.LogWarning("Moving a record on from {Status} failed (attempt {Attempt}): {Error}", activity.StatusKey, activity.Attempts + 1, ex.Message);
+                logger.LogWarning("Moving an item on from {Status} failed (attempt {Attempt}): {Error}", activity.StatusKey, activity.Attempts + 1, ex.Message);
             }
         }
+    }
+
+    /// <summary>
+    /// When the plugins there are change (one enabled or upgraded), what waited for a plugin that was off goes on now
+    /// rather than at its next retry (ADR 0090): its items' and steps' visits that last failed.
+    /// </summary>
+    private async Task WakeAsync(WorkflowsDb workflowsDb, long generation, CancellationToken cancellationToken)
+    {
+        if (generation == _generation)
+        {
+            return;
+        }
+
+        bool first = _generation == -1;
+        _generation = generation;
+        if (first)
+        {
+            return;
+        }
+
+        DateTime now = DateTime.UtcNow;
+        await workflowsDb.RunAsync(db => db.WorkflowActivities
+            .Where(a => (a.State == WorkflowActivityStates.Pending || a.State == WorkflowActivityStates.Completed) && a.LastError != null && a.NextSweepAt > now
+                && (a.ItemKind.Contains(":") || a.StatusType.Contains(":")))
+            .ExecuteUpdateAsync(s => s.SetProperty(a => a.NextSweepAt, now), cancellationToken), requiresNew: true, cancellationToken: cancellationToken);
     }
 
     /// <summary>Takes a row for a minute by moving its next sweep forward, if nobody else just did.</summary>

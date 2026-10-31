@@ -24,6 +24,7 @@ public interface IWorkflowsDbContext : IEfCoreDbContext
     DbSet<ApprovalDecision> ApprovalDecisions { get; }
     DbSet<WorkflowRun> WorkflowRuns { get; }
     DbSet<WorkflowRunStep> WorkflowRunSteps { get; }
+    DbSet<WorkflowBinding> WorkflowBindings { get; }
 }
 
 /// <summary>
@@ -69,8 +70,21 @@ public static class WorkflowsModel
         Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
     };
 
+    /// <summary>A kind's longest name: a plugin's key (49 at most) and its kind's (32), with room to spare (ADR 0090).</summary>
+    public const int ItemKindLength = 128;
+
     public static void ConfigureWorkflows(this ModelBuilder builder)
     {
+        builder.Entity<WorkflowBinding>(b =>
+        {
+            b.ToTable("workflow_bindings", Schema);
+            b.Property(x => x.ItemKind).HasMaxLength(ItemKindLength).IsRequired();
+            b.Property(x => x.ItemType).HasMaxLength(64).IsRequired();
+            b.HasIndex(x => new { x.ItemKind, x.ItemType, x.ScopeId }).IsUnique().AreNullsDistinct(false);
+            b.HasIndex(x => x.WorkflowId);
+            b.HasOne<Workflow>().WithMany().HasForeignKey(x => x.WorkflowId).OnDelete(DeleteBehavior.Restrict);
+        });
+
         builder.Entity<Workflow>(b =>
         {
             b.ToTable("workflows", Schema);
@@ -92,7 +106,7 @@ public static class WorkflowsModel
         builder.Entity<WorkflowActivity>(b =>
         {
             b.ToTable("workflow_activities", Schema);
-            b.Property(x => x.ItemKind).HasMaxLength(16).IsRequired().HasDefaultValue(WorkflowItemKinds.Record);
+            b.Property(x => x.ItemKind).HasMaxLength(ItemKindLength).IsRequired().HasDefaultValue(WorkflowItemKinds.Record);
             b.Property(x => x.StatusKey).HasMaxLength(64).IsRequired();
             b.Property(x => x.StatusType).HasMaxLength(128).IsRequired();
             b.Property(x => x.State).HasMaxLength(16).IsRequired();
@@ -107,7 +121,7 @@ public static class WorkflowsModel
         builder.Entity<WorkflowRun>(b =>
         {
             b.ToTable("workflow_runs", Schema);
-            b.Property(x => x.ItemKind).HasMaxLength(16).IsRequired().HasDefaultValue(WorkflowItemKinds.Record);
+            b.Property(x => x.ItemKind).HasMaxLength(ItemKindLength).IsRequired().HasDefaultValue(WorkflowItemKinds.Record);
             b.Property(x => x.ItemKey).HasMaxLength(64).IsRequired();
             b.Property(x => x.Kind).HasMaxLength(16).IsRequired();
             b.Property(x => x.Transition).HasMaxLength(128).IsRequired();

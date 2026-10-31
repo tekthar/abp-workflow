@@ -63,7 +63,8 @@ public class WorkflowSignals(WorkflowsDb workflowsDb, PluginStatusTypes types, W
             StatusResumeResult? result = await types.ResumeAsync(db, activity, status, signal, cancellationToken);
             if (result is null)
             {
-                activity.LastError = $"The status type '{activity.StatusType}' isn't available: its plugin may be off. The record stays here until it's back.";
+                activity.LastError = $"The status type '{activity.StatusType}' or the item's kind '{activity.ItemKind}' isn't available: its plugin may be off. "
+                    + "The item stays here until it's back.";
                 activity.NextSweepAt = now + PluginOffRetry;
                 await db.SaveChangesAsync(cancellationToken);
                 return false;

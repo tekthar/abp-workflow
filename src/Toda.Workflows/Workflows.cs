@@ -60,6 +60,39 @@ public class Workflow : Entity<Guid>
 }
 
 /// <summary>A published version of a workflow, kept for audit and for asynchronous work that started in it.</summary>
+/// <summary>
+/// A plugin's item type bound to a workflow (ADR 0090): at the site (scope null) or in one scope (a project), which
+/// then has its own. Records bind through their type and assets through their schema, in their own tables; a plugin
+/// can't add a column to the host's, so its bindings are the engine's.
+/// </summary>
+public class WorkflowBinding : Entity<Guid>
+{
+    protected WorkflowBinding()
+    {
+    }
+
+    public WorkflowBinding(Guid id, string itemKind, string itemType, Guid? scopeId, Guid workflowId) : base(id)
+    {
+        ItemKind = itemKind;
+        ItemType = itemType;
+        ScopeId = scopeId;
+        WorkflowId = workflowId;
+        CreatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>The plugin's kind, <c>{plugin}:{key}</c>.</summary>
+    public string ItemKind { get; private set; } = "";
+
+    public string ItemType { get; private set; } = "";
+
+    /// <summary>The scope that binds a workflow of its own; null for the site's binding.</summary>
+    public Guid? ScopeId { get; private set; }
+
+    public Guid WorkflowId { get; set; }
+
+    public DateTime CreatedAt { get; private set; }
+}
+
 public class WorkflowVersion : Entity<Guid>
 {
     protected WorkflowVersion()

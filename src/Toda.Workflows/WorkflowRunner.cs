@@ -153,7 +153,21 @@ public class WorkflowRunner(WorkflowExtensions extensions, StatusEntry statusEnt
             }
 
             IWorkflowItemStore store = stores.For(activity.ItemKind);
-            (WorkflowItemSession item, BoundWorkflow bound) = await store.OpenAsSystemAsync(db, activity.ItemId, cancellationToken) ?? default;
+            (WorkflowItemSession Item, BoundWorkflow Bound)? opened;
+            try
+            {
+                opened = await store.OpenAsSystemAsync(db, activity.ItemId, cancellationToken);
+            }
+            catch (WorkflowItemKindOffException ex)
+            {
+                // A plugin's item whose plugin is off (ADR 0090): it stays in this visit, and goes on once the plugin is back.
+                activity.LastError = ex.Message;
+                activity.NextSweepAt = DateTime.UtcNow + WorkflowSignals.PluginOffRetry;
+                await db.SaveChangesAsync(cancellationToken);
+                return false;
+            }
+
+            (WorkflowItemSession item, BoundWorkflow bound) = opened ?? default;
             bool latest = !await db.WorkflowActivities.AnyAsync(a => a.ItemId == activity.ItemId && a.EnteredAt > activity.EnteredAt, cancellationToken);
             if (item is null || item.Status != activity.StatusKey || !latest)
             {

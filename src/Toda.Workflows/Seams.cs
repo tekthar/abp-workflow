@@ -40,6 +40,25 @@ public sealed class ServiceWorkflowExtensions : IWorkflowExtensionSource
 }
 
 /// <summary>
+/// Who people are, for items whose host doesn't say itself (a plugin's kind, ADR 0090): the groups an account is in,
+/// whether it's a service account. The default knows nobody; Toda asks Guard.
+/// </summary>
+public interface IWorkflowPeople
+{
+    Task<IReadOnlyList<Guid>> GroupIdsAsync(Guid accountId, CancellationToken cancellationToken);
+
+    Task<bool> IsServiceAccountAsync(Guid accountId, CancellationToken cancellationToken);
+}
+
+/// <summary>The default: nobody is in a group, and nobody is a service account.</summary>
+public sealed class NoWorkflowPeople : IWorkflowPeople
+{
+    public Task<IReadOnlyList<Guid>> GroupIdsAsync(Guid accountId, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<Guid>>([]);
+
+    public Task<bool> IsServiceAccountAsync(Guid accountId, CancellationToken cancellationToken) => Task.FromResult(false);
+}
+
+/// <summary>
 /// Whether the engine's work that asks for a unit of work of its own (moving an item on from a waiting step, a signal)
 /// joins the caller's instead (ADR 0090): a host whose callers make several changes as one transaction says so while
 /// they do, as Toda does for a plugin's call. The default never joins.

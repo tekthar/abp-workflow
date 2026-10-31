@@ -231,7 +231,7 @@ public partial class WorkflowService(WorkflowCatalog catalog, WorkflowExtensions
     private async Task PublishedAsync(IWorkflowsDbContext db, Workflow workflow, Guid actorId, CancellationToken cancellationToken)
     {
         SaveVersion(db, workflow, actorId);
-        foreach (IWorkflowItemStore store in stores.All)
+        foreach (IWorkflowItemStore store in await stores.AllAsync(db, cancellationToken))
         {
             await store.PublishedAsync(db, workflow, cancellationToken);
         }
@@ -251,9 +251,21 @@ public partial class WorkflowService(WorkflowCatalog catalog, WorkflowExtensions
         List<string> removed = workflow.Definition.Statuses.Select(s => s.Key).Except(draft.Statuses.Select(s => s.Key)).ToList();
         if (removed.Count > 0)
         {
-            foreach (IWorkflowItemStore store in stores.All)
+            foreach (IWorkflowItemStore store in await stores.AllAsync(db, cancellationToken))
             {
-                problems.AddRange((await store.InStatusesAsync(db, workflow.Id, removed, cancellationToken)).Select(u =>
+                IReadOnlyDictionary<string, int> sitting;
+                try
+                {
+                    sitting = await store.InStatusesAsync(db, workflow.Id, removed, cancellationToken);
+                }
+                catch (WorkflowItemKindOffException ex)
+                {
+                    // A plugin's items this workflow moves can't be counted while it's off (ADR 0090).
+                    problems.Add($"Statuses can't be removed while '{ex.Kind}' is off: its {store.Noun}s may be in them. Switch its plugin on first.");
+                    continue;
+                }
+
+                problems.AddRange(sitting.Select(u =>
                     $"{(u.Value == 1 ? $"1 {store.Noun} is" : $"{u.Value} {store.Noun}s are")} in '{u.Key}', so it can't be removed yet. Move them to another status first."));
             }
         }

@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.DependencyInjection;
 
@@ -34,13 +35,29 @@ public interface IWorkflowItemStore
     string Noun { get; }
 }
 
-/// <summary>The stores there are, by kind. Read when needed, since the hosts' services take transitions through the runner themselves.</summary>
-public class WorkflowItemStores(IServiceProvider services) : ITransientDependency
+/// <summary>
+/// The stores there are, by kind: the host's own from DI, and a plugin's kind (ADR 0090) through the engine's bridge.
+/// Read when needed, since the hosts' services take transitions through the runner themselves.
+/// </summary>
+public class WorkflowItemStores(IServiceProvider services, KindItems kinds) : ITransientDependency
 {
-    /// <summary>Every store there is: what publishing asks about the items a workflow moves.</summary>
-    public IEnumerable<IWorkflowItemStore> All => services.GetServices<IWorkflowItemStore>();
+    /// <summary>
+    /// Every store there is: what publishing asks about the items a workflow moves. Plugins' kinds are those some
+    /// workflow is bound for, their plugin on or not.
+    /// </summary>
+    public async Task<List<IWorkflowItemStore>> AllAsync(IWorkflowsDbContext db, CancellationToken cancellationToken)
+    {
+        List<IWorkflowItemStore> all = [.. services.GetServices<IWorkflowItemStore>()];
+        foreach (string kind in await db.WorkflowBindings.AsNoTracking().Select(b => b.ItemKind).Distinct().ToListAsync(cancellationToken))
+        {
+            all.Add(new KindItemStore(kind, await kinds.NounAsync(kind), kinds));
+        }
+
+        return all;
+    }
 
     public IWorkflowItemStore For(string kind) =>
         services.GetServices<IWorkflowItemStore>().FirstOrDefault(s => s.Kind == kind)
+        ?? (WorkflowItemKindNames.IsPlugin(kind) ? new KindItemStore(kind, kind, kinds) : null)
         ?? throw new InvalidOperationException($"Nothing here moves '{kind}' items through workflows.");
 }
