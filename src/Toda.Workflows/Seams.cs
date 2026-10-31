@@ -84,14 +84,15 @@ public interface IWorkflowSiteContexts
 }
 
 /// <summary>
-/// The default, for a host that gives none: every account and group exists, and every field is text. Settings that
-/// need a date or a people field are then refused; a host that has them says so with its own.
+/// The default, for a host that gives none: every account and group exists, and a field has the shape an item kind
+/// declares for it (<see cref="IWorkflowItemKind.Fields"/>), or is text. A host that knows its people and fields says
+/// so with its own.
 /// </summary>
-public sealed class UncheckedWorkflowSiteContexts : IWorkflowSiteContexts
+public sealed class UncheckedWorkflowSiteContexts(IServiceProvider services) : IWorkflowSiteContexts
 {
-    public IWorkflowSiteContext For(IWorkflowsDbContext db, Guid? scopeId) => new Site(scopeId);
+    public IWorkflowSiteContext For(IWorkflowsDbContext db, Guid? scopeId) => new Site(scopeId, services);
 
-    private sealed class Site(Guid? scopeId) : IWorkflowSiteContext
+    private sealed class Site(Guid? scopeId, IServiceProvider services) : IWorkflowSiteContext
     {
         public Guid? ScopeId => scopeId;
 
@@ -99,7 +100,8 @@ public sealed class UncheckedWorkflowSiteContexts : IWorkflowSiteContexts
 
         public Task<bool> AccountExistsAsync(Guid id, CancellationToken cancellationToken) => Task.FromResult(true);
 
-        public Task<string?> FieldKindAsync(string field, CancellationToken cancellationToken) => Task.FromResult<string?>("text");
+        public async Task<string?> FieldKindAsync(string field, CancellationToken cancellationToken) =>
+            (await services.GetRequiredService<KindItems>().CatalogAsync()).SelectMany(k => k.Fields).FirstOrDefault(f => f.Name == field)?.Kind ?? "text";
     }
 }
 

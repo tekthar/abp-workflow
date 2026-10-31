@@ -129,6 +129,36 @@ public sealed class WorkflowsAloneTests : IAsyncLifetime
         Assert.Equal("simple", moved.GetProperty("workflow").GetString());
     }
 
+    [Fact]
+    public async Task A_contract_is_approved_by_the_person_its_reviewer_field_names()
+    {
+        // The approval reads a person field the document kind declares, so the engine's default checks accept it.
+        await SendAsync(HttpMethod.Post, "/api/workflows", Admin, new
+        {
+            key = "contract-review",
+            definition = new
+            {
+                statuses = new object[]
+                {
+                    Status("draft", "todo"),
+                    Status("review", "inProgress", "approval", new { field = "reviewer", rule = "all" }, new { approved = "signed", rejected = "draft" }),
+                    Status("signed", "done"),
+                },
+                transitions = new object[] { Transition("send", ["draft"], "review") },
+            },
+        });
+        await SendAsync(HttpMethod.Put, "/api/document-types/contract/workflow", Admin, new { workflow = "contract-review" });
+        JsonElement contract = await SendAsync(HttpMethod.Post, "/api/documents", Author, new { type = "contract", title = "Lease", reviewer = OtherReviewer });
+        string doc = $"/api/documents/{contract.GetProperty("id").GetString()}";
+        await SendAsync(HttpMethod.Post, $"{doc}/transitions/send", Author, new { });
+
+        // Only the reviewer it names decides: not the group's other member.
+        string approval = (await SendAsync(HttpMethod.Get, $"{doc}/approvals", Reviewer))[0].GetProperty("id").GetString()!;
+        Assert.Equal(HttpStatusCode.Forbidden, (await TryAsync(HttpMethod.Post, $"{doc}/approvals/{approval}", Reviewer, new { approve = true })).Status);
+        JsonElement signed = await SendAsync(HttpMethod.Post, $"{doc}/approvals/{approval}", OtherReviewer, new { approve = true });
+        Assert.Equal("signed", signed.GetProperty("status").GetString());
+    }
+
     /// <summary>The memo workflow: draft → review (an approval by the reviewers) → countersign (waits for a signal) → published (notifies) → archived.</summary>
     private async Task SetUpAsync()
     {

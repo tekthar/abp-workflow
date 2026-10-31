@@ -51,7 +51,7 @@ public static class WorkflowEngine
                 bool exists = definition.Transitions.Any(t => t.Key == transition || t.Number.ToString() == transition);
                 throw new UserFriendlyException(exists
                     ? $"'{transition}' can't be taken from {definition.Status(from)?.Name() ?? from}. From here: {Listing()}."
-                    : $"{typeName} records have no transition '{transition}'. From here: {Listing()}.");
+                    : $"{typeName} has no transition '{transition}'. From here: {Listing()}.");
             }
 
             if (target is not null && target != named.To)
