@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
 
@@ -72,8 +72,18 @@ public class WorkflowTraces(WorkflowsDb workflowsDb, ILogger<WorkflowTraces> log
     }
 }
 
+/// <summary>How long traces are kept (the "Workflows:Trace" settings): their steps' detail, and the runs themselves.</summary>
+public sealed class WorkflowTraceOptions
+{
+    public const string Section = "Workflows:Trace";
+
+    public int StepDays { get; set; } = 30;
+
+    public int RunDays { get; set; } = 365;
+}
+
 /// <summary>Deletes old traces every hour, in batches: steps after <c>StepDays</c> (30), runs after <c>RunDays</c> (365).</summary>
-public class WorkflowTraceRetention(IServiceScopeFactory scopes, IConfiguration configuration, ILogger<WorkflowTraceRetention> logger) : BackgroundService
+public class WorkflowTraceRetention(IServiceScopeFactory scopes, IOptions<WorkflowTraceOptions> options, ILogger<WorkflowTraceRetention> logger) : BackgroundService
 {
     private const int Batch = 5000;
 
@@ -96,10 +106,8 @@ public class WorkflowTraceRetention(IServiceScopeFactory scopes, IConfiguration 
 
     public async Task PruneAsync(CancellationToken cancellationToken)
     {
-        int stepDays = configuration.GetValue("Toda:Workflows:Trace:StepDays", 30);
-        int runDays = configuration.GetValue("Toda:Workflows:Trace:RunDays", 365);
-        DateTime stepsBefore = DateTime.UtcNow.AddDays(-stepDays);
-        DateTime runsBefore = DateTime.UtcNow.AddDays(-runDays);
+        DateTime stepsBefore = DateTime.UtcNow.AddDays(-options.Value.StepDays);
+        DateTime runsBefore = DateTime.UtcNow.AddDays(-options.Value.RunDays);
         await using AsyncServiceScope scope = scopes.CreateAsyncScope();
         WorkflowsDb workflowsDb = scope.ServiceProvider.GetRequiredService<WorkflowsDb>();
         while (await workflowsDb.RunAsync(db => db.WorkflowRunSteps.Where(s => s.At < stepsBefore).OrderBy(s => s.At).Take(Batch)

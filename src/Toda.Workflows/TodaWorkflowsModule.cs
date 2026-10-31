@@ -22,6 +22,8 @@ public class TodaWorkflowsModule : AbpModule
         context.Services.TryAddTransient<IWorkflowEvents, NoWorkflowEvents>();
         context.Services.TryAddSingleton<IWorkflowJoinSwitch, NeverJoins>();
         context.Services.TryAddTransient<IWorkflowPeople, NoWorkflowPeople>();
+        // How long traces are kept, from the host's settings.
+        context.Services.Configure<WorkflowTraceOptions>(context.Services.GetConfiguration().GetSection(WorkflowTraceOptions.Section));
         // Waiting steps advanced in the background, and old runs pruned.
         context.Services.AddHostedService<WorkflowWorker>();
         context.Services.AddHostedService<WorkflowTraceRetention>();

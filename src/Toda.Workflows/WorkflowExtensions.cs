@@ -35,7 +35,7 @@ public sealed class TransitionContext(WorkflowItemSession item, WorkflowDefiniti
 public sealed record WorkflowExtensionInfo(string Type, string Kind, string Title, string Description, JsonElement SettingsSchema, string? EditComponent, string? PluginKey);
 
 /// <summary>
-/// Runs a transition's conditions, checks and actions (ADR 0019): Toda's built-ins and plugins' through one
+/// Runs a transition's conditions, checks and actions (ADR 0019): the built-ins, the host's and plugins' through one
 /// contract. An extension nobody provides, or one that throws, stops the transition with a message naming it: nothing
 /// is skipped silently.
 /// </summary>

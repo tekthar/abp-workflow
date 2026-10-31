@@ -128,14 +128,14 @@ public sealed class NoWorkflowEvents : IWorkflowEvents
 }
 
 /// <summary>
-/// The engine's error codes, on refusals the person can act on. Toda's strings for now (its web and phone app read
-/// them); the app's rename moves both together.
+/// The engine's error codes, on refusals the person can act on. A host answers them with their statuses (ABP's
+/// <c>AbpExceptionHttpStatusCodeOptions</c>, or its own status finder); without that, ABP answers 403 for both.
 /// </summary>
 public static class WorkflowErrorCodes
 {
     /// <summary>A rule or a condition refused it. 403.</summary>
-    public const string Forbidden = "Toda:Forbidden";
+    public const string Forbidden = "Toda.Workflows:Forbidden";
 
     /// <summary>Someone else changed the item first, or the approval is over. 409.</summary>
-    public const string Conflict = "Toda:Conflict";
+    public const string Conflict = "Toda.Workflows:Conflict";
 }
