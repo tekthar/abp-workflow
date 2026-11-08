@@ -60,9 +60,10 @@ public sealed class FieldValueCondition : IWorkflowExtension, ITransientDependen
 
     public string SettingsSchema => """
         {"type":"object","required":["field","op"],"properties":{
-          "field":{"type":"string","title":"Field"},
-          "op":{"type":"string","title":"Test","enum":["equals","notEquals","in","notIn","isEmpty","isNotEmpty"]},
-          "values":{"type":"array","title":"Values","items":{"type":"string"}},
+          "field":{"type":"string","title":"Field","format":"field"},
+          "op":{"type":"string","title":"Test","enum":["equals","notEquals","in","notIn","isEmpty","isNotEmpty"],
+            "x-enumTitles":{"equals":"is","notEquals":"is not","in":"is one of","notIn":"is none of","isEmpty":"is empty","isNotEmpty":"has a value"}},
+          "values":{"type":"array","title":"Values","items":{"type":"string","format":"fieldValue","x-field":"field"}},
           "message":{"type":"string","title":"Message when it doesn't hold"}}}
         """;
 
@@ -111,7 +112,8 @@ public sealed class PersonCondition : IWorkflowExtension, ITransientDependency
         {"type":"object","properties":{
           "accounts":{"type":"array","title":"Accounts","items":{"type":"string","format":"account"}},
           "groups":{"type":"array","title":"Groups","items":{"type":"string","format":"group"}},
-          "who":{"type":"array","title":"People on the record","items":{"type":"string","enum":["reporter","assignee","projectAdmins"]}}}}
+          "who":{"type":"array","title":"People on the record","items":{"type":"string","enum":["reporter","assignee","projectAdmins"],
+            "x-enumTitles":{"reporter":"The reporter","assignee":"The assignee","projectAdmins":"The project's admins"}}}}}
         """;
 
     public string Summary(JsonElement? settings, string language)
@@ -272,7 +274,7 @@ public sealed class SetFieldAction : IWorkflowExtension, ITransientDependency
     public string Kind => WorkflowExtensionKinds.Action;
     public string Title => "Set a field";
     public string Description => "Sets a field to a value, or clears it.";
-    public string SettingsSchema => """{"type":"object","required":["field"],"properties":{"field":{"type":"string","title":"Field","format":"field"},"value":{"title":"Value (empty clears)"}}}""";
+    public string SettingsSchema => """{"type":"object","required":["field"],"properties":{"field":{"type":"string","title":"Field","format":"field"},"value":{"title":"Value (empty clears)","format":"fieldValue","x-field":"field"}}}""";
 
     public string Summary(JsonElement? settings, string language) =>
         settings is { ValueKind: JsonValueKind.Object } s && s.TryGetProperty("value", out JsonElement v) && v.ValueKind != JsonValueKind.Null
