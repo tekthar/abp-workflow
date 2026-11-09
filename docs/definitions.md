@@ -1,7 +1,13 @@
 # Workflow definitions
 
 A definition is JSON (camelCase), stored with every version. `WorkflowService.CreateAsync` makes a workflow from one,
-and `NormalizeAsync` and `PublishAsync` check and publish drafts.
+and `NormalizeAsync` and `PublishAsync` check and publish drafts. To read or write a `WorkflowDefinition` yourself,
+use the engine's options, `WorkflowsModel.Json`: enums such as a status's category are camelCase strings
+(`"inProgress"`), which the serializer's defaults don't read.
+
+```csharp
+WorkflowDefinition definition = JsonSerializer.Deserialize<WorkflowDefinition>(json, WorkflowsModel.Json)!;
+```
 
 ```json
 {
@@ -132,5 +138,6 @@ Saving and publishing refuse a definition, listing every problem at once, when:
 - a transition starts or ends at a status that isn't there;
 - the initial status isn't there.
 
-Publishing also refuses to remove a status that items of any kind are in. Binding a type refuses a workflow that uses
-an extension or status type not meant for that kind of item (`AppliesTo`).
+Publishing also refuses to remove a status that items of any kind are in. A workflow isn't tied to a kind of item
+until it's bound, so binding a type is where a workflow that uses an extension or status type not meant for that kind
+(`AppliesTo`) is refused. Saving refuses it too when your `IWorkflowSiteContext` names the kind (`ItemKind`).

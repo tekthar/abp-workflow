@@ -20,11 +20,12 @@ The first release as packages, after the engine ran Toda's records and assets.
   - the definition's format number (1).
 - `Toda.Workflows`, the ABP module:
   - definitions with drafts and published versions, checked on save and publish (`WorkflowService`, including
-    `CreateAsync` from a definition);
+    `CreateAsync` from a definition), and `WorkflowsModel.Json` for hosts that read or write definitions themselves;
   - the runner's phases;
   - `WorkflowItems` for start, transitions, approvals, runs and bindings;
   - built-in conditions, checks and actions (`field-value`, `person`, `required`, `changed`, `pattern`,
-    `set-field`);
+    `set-field`), whose settings schemas say what each setting holds (`format`, `x-field`, `x-enumTitles`) so a
+    designer can offer pickers;
   - built-in status types (`automated`, `decision`, `wait`, `approval`);
   - the background worker and the tracer, with retention (`Workflows:Trace`);
   - the EF Core model a host maps (`ConfigureWorkflows`, schema `workflows`).

@@ -22,7 +22,7 @@ The engine has no controllers or pages: your host has its own API, sign-in and r
 | Seam | Says | Default |
 |---|---|---|
 | `IWorkflowPeople` | An account's groups (for approvals by group and the person condition), and whether it's a service account. | Nobody is in any group. |
-| `IWorkflowSiteContexts` | Whether the accounts, groups and fields a workflow's settings name exist in a scope, and each field's shape. | Every account and group exists; a field has the shape an item kind declares, else text. |
+| `IWorkflowSiteContexts` | Whether the accounts, groups and fields a workflow's settings name exist in a scope, each field's shape, and the kind of item the workflow is for if you know it as it's saved. | Every account and group exists; a field has the shape an item kind declares, else text; the kind isn't known, so `AppliesTo` is checked when the workflow is bound. |
 | `IWorkflowEvents` | A transition was taken, an item moved on from a step, an approval was decided: inside the change that did it. | Tells no one. |
 | `IWorkflowExtensionSource` | Where extensions, status types and item kinds come from, leased per use, with a generation that changes when they do. | The host's own, from DI. |
 | `IWorkflowJoinSwitch` | Whether the engine's own units of work join the caller's instead (when several changes must be one transaction). | Never. |

@@ -51,7 +51,7 @@ public sealed class HasBodyCheck : IWorkflowExtension, ITransientDependency
 | `Key` | Unique among yours: lowercase letters, digits and dashes. Don't reuse a built-in's key. |
 | `Kind` | One of `WorkflowExtensionKinds`. |
 | `Title`, `Description` | What a designer shows. |
-| `SettingsSchema` | A JSON Schema (object, properties, required, type, enum, items). Settings are checked against it on every save and import; a designer can build its form from it. |
+| `SettingsSchema` | A JSON Schema (object, properties, required, type, enum, items). Settings are checked against it on every save and import; a designer can build its form from it. `format` and the `x-` keywords tell that form what a setting holds, and the check ignores them. The built-ins use `account`, `group` and `field`; `fieldValue`, with `x-field` naming the setting that holds its field; and `x-enumTitles`, words for an enum's values. |
 | `EditComponent` | Optional: a designer's own edit component instead of the generated form. |
 | `AppliesTo` | Optional: the kinds of item it works on. Binding a type to a workflow that uses it elsewhere is refused. |
 | `Summary` | One line for the transition's list, history and traces. |
