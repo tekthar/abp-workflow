@@ -6,20 +6,10 @@ All notable changes to AbpWorkflow are written here. The format follows
 
 ## [Unreleased]
 
-### Changed
+## [0.1.0] - 2026-11-11
 
-- The packages are renamed, to be independent of any host (`docs/adr/0001-independent-of-any-host.md`):
-  `Toda.Workflows.Contracts` is now `AbpWorkflow.Contracts` and `Toda.Workflows` is now `AbpWorkflow`, with their
-  namespaces; `TodaWorkflowsModule` is now `AbpWorkflowModule`.
-- The error codes are `AbpWorkflow:Forbidden` and `AbpWorkflow:Conflict` (were `Toda.Workflows:Forbidden` and
-  `Toda.Workflows:Conflict`).
-- The tests' server is named by `ABPWORKFLOW_TEST_POSTGRES` (was `TODA_WORKFLOW_TEST_POSTGRES`).
-- No table, column or stored value changed: the tables stay in the `workflows` schema, so a host's migration for the
-  rename is empty.
-
-## [0.1.0-preview.1] - 2026-10-31
-
-The first packages, under the former names; never published to nuget.org.
+The first release on nuget.org. The engine was built as `Toda.Workflows` before this and never published under that
+name; a host that built it from source under those names renames them as below.
 
 ### Added
 
@@ -44,3 +34,14 @@ The first packages, under the former names; never published to nuget.org.
   `IWorkflowJoinSwitch`.
 - Error codes `AbpWorkflow:Forbidden` and `AbpWorkflow:Conflict`.
 - A sample host (`samples/AbpWorkflow.SampleHost`) and its PostgreSQL tests.
+
+### Changed
+
+- The packages are renamed, to be independent of any host (`docs/adr/0001-independent-of-any-host.md`):
+  `Toda.Workflows.Contracts` is now `AbpWorkflow.Contracts` and `Toda.Workflows` is now `AbpWorkflow`, with their
+  namespaces; `TodaWorkflowsModule` is now `AbpWorkflowModule`.
+- The error codes are `AbpWorkflow:Forbidden` and `AbpWorkflow:Conflict` (were `Toda.Workflows:Forbidden` and
+  `Toda.Workflows:Conflict`).
+- The tests' server is named by `ABPWORKFLOW_TEST_POSTGRES` (was `TODA_WORKFLOW_TEST_POSTGRES`).
+- No table, column or stored value changed: the tables stay in the `workflows` schema, so a host's migration for the
+  rename is empty.

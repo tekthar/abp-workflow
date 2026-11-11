@@ -113,7 +113,7 @@ dotnet run --project samples/AbpWorkflow.SampleHost --urls http://localhost:5310
 ## Releasing
 
 The version is `VersionPrefix` and `VersionSuffix` in `Directory.Build.props`, and `CHANGELOG.md` needs an entry for
-it. Pushing the tag `v<version>`, such as `v0.1.0-preview.1`, runs the checks. GitHub Actions then pushes the packages
+it. Pushing the tag `v<version>`, such as `v0.1.0`, runs the checks. GitHub Actions then pushes the packages
 to nuget.org and makes a GitHub release.
 
 Publishing uses nuget.org's Trusted Publishing, so no API key is stored anywhere: nuget.org gives the release job a key
