@@ -7,4 +7,4 @@ The engine decides who may move items and who may approve them, so reports of vu
 how to reproduce it, and the version. We will answer within a week, agree on a fix and a date to publish it, and credit
 you unless you'd rather not be named.
 
-Supported versions: the latest release only, while Toda Workflow is in preview (0.x).
+Supported versions: the latest release only, while AbpWorkflow is in preview (0.x).

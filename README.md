@@ -1,10 +1,10 @@
-# Toda Workflow
+# AbpWorkflow
 
 A workflow engine for ABP applications on .NET 10 and PostgreSQL. Your items move through statuses by transitions that
 are offered when their conditions hold, let through when their checks pass, and followed by their actions. Statuses can
-wait for approvals, timers or outside signals, and every run leaves a trace. Toda Workflow is the engine of Toda, an
-open-source work management platform. It is packaged so any product can move its own things (documents, orders,
-requests, listings) through the same engine.
+wait for approvals, timers or outside signals, and every run leaves a trace. AbpWorkflow is independent of any one
+product: a host gives its items, people and plugins through the seams, so any product can move its own things
+(documents, orders, requests, listings) through the same engine.
 
 > **Preview.** 0.x versions may change their API in any minor version (SemVer). Pin an exact version.
 
@@ -36,21 +36,21 @@ The engine keeps its seven tables in the `workflows` schema of your database, ma
 
 ## Packages
 
-On [nuget.org](https://www.nuget.org/packages?q=Toda.Workflows):
+On [nuget.org](https://www.nuget.org/packages?q=AbpWorkflow):
 
 | Package | What it holds |
 |---|---|
-| `Toda.Workflows.Contracts` | The public contracts: items (`IWorkflowItemKind`), extensions (`IWorkflowExtension`), status types (`IWorkflowStatusType`), signals and events. Nothing but .NET: plugins and extension libraries reference only this. |
-| `Toda.Workflows` | The ABP module: definitions and publishing, the runner, built-in extensions and status types, approvals, the worker, the tracer, and the EF Core model you map. |
+| `AbpWorkflow.Contracts` | The public contracts: items (`IWorkflowItemKind`), extensions (`IWorkflowExtension`), status types (`IWorkflowStatusType`), signals and events. Nothing but .NET: plugins and extension libraries reference only this. |
+| `AbpWorkflow` | The ABP module: definitions and publishing, the runner, built-in extensions and status types, approvals, the worker, the tracer, and the EF Core model you map. |
 
 ## Use it in a host
 
-`samples/Toda.Workflows.SampleHost` is a complete host: documents in their own table, moving by workflows with the
+`samples/AbpWorkflow.SampleHost` is a complete host: documents in their own table, moving by workflows with the
 engine's defaults. [Getting started](docs/getting-started.md) walks through it. In short:
 
 ```csharp
 // 1. Depend on the module.
-[DependsOn(typeof(TodaWorkflowsModule), typeof(AbpAspNetCoreMvcModule))]
+[DependsOn(typeof(AbpWorkflowModule), typeof(AbpAspNetCoreMvcModule))]
 public class MyModule : AbpModule
 {
     public override void ConfigureServices(ServiceConfigurationContext context) =>
@@ -89,25 +89,25 @@ await workflowItems.TakeAsync(me, "order", orderId, "submit", version: order.Ver
   error codes and HTTP, settings, running several servers.
 - [Troubleshooting](docs/troubleshooting.md): the messages you may meet, and what to do.
 
-Comments in the code cite design records by number, such as "ADR 0089". These are Toda's architecture decision records.
-`docs/adr/0089-workflows-as-a-package.md` is the one that made the engine a package.
+The decisions a reader needs are in the guides and in `docs/adr`: [0001](docs/adr/0001-independent-of-any-host.md)
+says why the package knows nothing of its hosts.
 
 ## Build and test
 
 You need the .NET 10 SDK. The host tests also need PostgreSQL: `localhost:5432` with user and password `postgres` (the
-official image's defaults), or the server `TODA_WORKFLOW_TEST_POSTGRES` names.
+official image's defaults), or the server `ABPWORKFLOW_TEST_POSTGRES` names.
 
 ```bash
 docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=postgres postgres:17
-dotnet build Toda.Workflows.slnx -c Release
-dotnet test Toda.Workflows.slnx -c Release
-dotnet pack Toda.Workflows.slnx -c Release -o artifacts
+dotnet build AbpWorkflow.slnx -c Release
+dotnet test AbpWorkflow.slnx -c Release
+dotnet pack AbpWorkflow.slnx -c Release -o artifacts
 ```
 
 To try the sample, run it and call its API with an `X-Account` header (the sample has no sign-in):
 
 ```bash
-dotnet run --project samples/Toda.Workflows.SampleHost --urls http://localhost:5310
+dotnet run --project samples/AbpWorkflow.SampleHost --urls http://localhost:5310
 ```
 
 ## Releasing

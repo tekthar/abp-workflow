@@ -15,7 +15,7 @@ The engine has no controllers or pages: your host has its own API, sign-in and r
 
 ## The seams
 
-`TodaWorkflowsModule` registers a default for each with `TryAdd`. Replace the ones you have your own of in your module
+`AbpWorkflowModule` registers a default for each with `TryAdd`. Replace the ones you have your own of in your module
 (`context.Services.Replace(ServiceDescriptor.Transient<IWorkflowPeople, MyPeople>())`), or with
 `[Dependency(ReplaceServices = true)]`.
 
@@ -41,7 +41,7 @@ plugin key), then each plugin's with its key, for one use. The engine disposes t
 be unloaded. Raise `Generation` when plugins change: the catalog of status types is cached by it, and the worker
 retries what waited for a plugin that was off.
 
-Plugins reference only `Toda.Workflows.Contracts`. Their types are named `{plugin}:{key}`.
+Plugins reference only `AbpWorkflow.Contracts`. Their types are named `{plugin}:{key}`.
 
 ## The database
 
@@ -75,8 +75,8 @@ Refusals are ABP `UserFriendlyException`s with a message for the person:
 
 | Code | When | Suggested status |
 |---|---|---|
-| `WorkflowErrorCodes.Forbidden` (`Toda.Workflows:Forbidden`) | A condition or rule refused; the actor may not change the status or decide. | 403 |
-| `WorkflowErrorCodes.Conflict` (`Toda.Workflows:Conflict`) | A stale version; an approval already decided or over; a kind or plugin that's off. | 409 |
+| `WorkflowErrorCodes.Forbidden` (`AbpWorkflow:Forbidden`) | A condition or rule refused; the actor may not change the status or decide. | 403 |
+| `WorkflowErrorCodes.Conflict` (`AbpWorkflow:Conflict`) | A stale version; an approval already decided or over; a kind or plugin that's off. | 409 |
 | none | A check's complaint, a bad request (no such transition, a field the screen doesn't ask for). | 400 (ABP answers 403 unless you map it) |
 
 Map them with `AbpExceptionHttpStatusCodeOptions` or your own `IHttpExceptionStatusCodeFinder`. A missing item or

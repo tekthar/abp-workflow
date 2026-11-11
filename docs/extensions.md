@@ -1,7 +1,7 @@
 # Extensions
 
 Conditions, checks and actions are **extensions**: classes implementing `IWorkflowExtension` from
-`Toda.Workflows.Contracts`. The engine's built-ins, your host's own and plugins' all go through the same contract.
+`AbpWorkflow.Contracts`. The engine's built-ins, your host's own and plugins' all go through the same contract.
 
 | Kind | Runs | Returns |
 |---|---|---|

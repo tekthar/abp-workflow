@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>AbpWorkflow: workflow definitions, the engine and runner, status types, approvals, the worker and the tracer.</Description>
+  </PropertyGroup>
+
+  <!-- Nothing of a host's: a host gives items, rights and plugins through the seams. An architecture test holds this. -->
+
+  <ItemGroup>
+    <ProjectReference Include="..\AbpWorkflow.Contracts\AbpWorkflow.Contracts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Postgres only: signals lock their row with FOR UPDATE, and keys are unique with nulls not distinct. -->
+    <PackageReference Include="Volo.Abp.EntityFrameworkCore.PostgreSql" Version="$(AbpVersion)" />
+    <!-- EF Core as the design-time tools build against (10.0.12), as Guard pins it. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.12" />
+  </ItemGroup>
+
+</Project>

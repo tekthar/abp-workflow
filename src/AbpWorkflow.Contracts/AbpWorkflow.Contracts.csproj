@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Public contracts of AbpWorkflow: the items workflows move, and the extensions and status types plugins add.</Description>
+  </PropertyGroup>
+
+  <!-- Plain .NET: nothing of a host's, ABP's or EF Core's. An architecture test holds this. -->
+
+</Project>

@@ -2,12 +2,11 @@
 
 The engine moves your items without knowing what they are. There are two ways to give it items:
 
-- **`IWorkflowItemKind`** (in `Toda.Workflows.Contracts`): one class answers for a kind of item; the engine does
+- **`IWorkflowItemKind`** (in `AbpWorkflow.Contracts`): one class answers for a kind of item; the engine does
   everything else through `WorkflowItems`. Start here.
-- **`IWorkflowItemStore` with a `WorkflowItemSession`** (in `Toda.Workflows`): you open the item yourself and drive the
+- **`IWorkflowItemStore` with a `WorkflowItemSession`** (in `AbpWorkflow`): you open the item yourself and drive the
   runner's phases, so your own edits sit between them. For items with more to them than a status and values, such as
-  children, links, history of their own, or an edit form that also takes transitions. Toda's records and assets work
-  this way.
+  children, links, history of their own, or an edit form that also takes transitions, such as a tracker's records.
 
 ## IWorkflowItemKind
 

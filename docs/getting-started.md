@@ -1,21 +1,21 @@
 # Getting started
 
 This guide builds a host that moves its own documents through a review workflow. It is the sample host
-(`samples/Toda.Workflows.SampleHost`), explained in order. Run the sample beside it to follow along.
+(`samples/AbpWorkflow.SampleHost`), explained in order. Run the sample beside it to follow along.
 
 You need an ABP application on .NET 10 with EF Core and PostgreSQL.
 
 ## 1. Add the package and the module
 
 ```bash
-dotnet add package Toda.Workflows --prerelease
+dotnet add package AbpWorkflow --prerelease
 ```
 
-Depend on `TodaWorkflowsModule`. It brings ABP's EF Core module for PostgreSQL and registers the engine's services, its
+Depend on `AbpWorkflowModule`. It brings ABP's EF Core module for PostgreSQL and registers the engine's services, its
 defaults for every seam, the background worker and the trace retention.
 
 ```csharp
-[DependsOn(typeof(AbpAutofacModule), typeof(AbpAspNetCoreMvcModule), typeof(TodaWorkflowsModule))]
+[DependsOn(typeof(AbpAutofacModule), typeof(AbpAspNetCoreMvcModule), typeof(AbpWorkflowModule))]
 public class SampleHostModule : AbpModule
 {
     public override void ConfigureServices(ServiceConfigurationContext context)

@@ -6,4 +6,4 @@ obj/
 artifacts/
 TestResults/
 *.log
-samples/Toda.Workflows.SampleHost/App_Data/
+samples/AbpWorkflow.SampleHost/App_Data/

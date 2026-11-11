@@ -1,24 +1,35 @@
 # Changelog
 
-All notable changes to Toda Workflow are written here. The format follows
+All notable changes to AbpWorkflow are written here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the packages follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html): before 1.0, a minor version may change the API.
 
 ## [Unreleased]
 
+### Changed
+
+- The packages are renamed, to be independent of any host (`docs/adr/0001-independent-of-any-host.md`):
+  `Toda.Workflows.Contracts` is now `AbpWorkflow.Contracts` and `Toda.Workflows` is now `AbpWorkflow`, with their
+  namespaces; `TodaWorkflowsModule` is now `AbpWorkflowModule`.
+- The error codes are `AbpWorkflow:Forbidden` and `AbpWorkflow:Conflict` (were `Toda.Workflows:Forbidden` and
+  `Toda.Workflows:Conflict`).
+- The tests' server is named by `ABPWORKFLOW_TEST_POSTGRES` (was `TODA_WORKFLOW_TEST_POSTGRES`).
+- No table, column or stored value changed: the tables stay in the `workflows` schema, so a host's migration for the
+  rename is empty.
+
 ## [0.1.0-preview.1] - 2026-10-31
 
-The first release as packages, after the engine ran Toda's records and assets.
+The first packages, under the former names; never published to nuget.org.
 
 ### Added
 
-- `Toda.Workflows.Contracts`:
+- `AbpWorkflow.Contracts`:
   - `IWorkflowItemKind` for items of a host's or a plugin's own;
   - `IWorkflowExtension` for conditions, checks and actions;
   - `IWorkflowStatusType` for steps that leave at once or wait;
   - `IWorkflowSignals`, item references and events;
   - the definition's format number (1).
-- `Toda.Workflows`, the ABP module:
+- `AbpWorkflow`, the ABP module:
   - definitions with drafts and published versions, checked on save and publish (`WorkflowService`, including
     `CreateAsync` from a definition), and `WorkflowsModel.Json` for hosts that read or write definitions themselves;
   - the runner's phases;
@@ -31,5 +42,5 @@ The first release as packages, after the engine ran Toda's records and assets.
   - the EF Core model a host maps (`ConfigureWorkflows`, schema `workflows`).
 - Seams with defaults: `IWorkflowPeople`, `IWorkflowSiteContexts`, `IWorkflowEvents`, `IWorkflowExtensionSource`,
   `IWorkflowJoinSwitch`.
-- Error codes `Toda.Workflows:Forbidden` and `Toda.Workflows:Conflict`.
-- A sample host (`samples/Toda.Workflows.SampleHost`) and its PostgreSQL tests.
+- Error codes `AbpWorkflow:Forbidden` and `AbpWorkflow:Conflict`.
+- A sample host (`samples/AbpWorkflow.SampleHost`) and its PostgreSQL tests.

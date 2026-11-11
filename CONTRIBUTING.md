@@ -8,7 +8,7 @@ Thank you for helping. Issues and pull requests are welcome on GitHub.
   `dotnet pack`. A pull request runs the same in CI, on GitHub Actions.
 - **Keep what hosts and plugins rely on.** These are a contract: changing one is a breaking change and goes in the
   CHANGELOG under the version that makes it.
-  - the contracts in `Toda.Workflows.Contracts`;
+  - the contracts in `AbpWorkflow.Contracts`;
   - the stored definition's JSON (raise `WorkflowFormat.Current` for a change older engines can't read);
   - the built-ins' keys and settings;
   - status types' exits;
@@ -17,7 +17,7 @@ Thank you for helping. Issues and pull requests are welcome on GitHub.
 - **The model.** A change to the engine's tables changes every host's migrations: say so in the CHANGELOG, with what a
   host runs (`dotnet ef migrations add`).
 - **Nothing of a host's in the engine.** The engine reaches its host only through the seams; the architecture tests in
-  `tests/Toda.Workflows.Tests` hold that.
+  `tests/AbpWorkflow.Tests` hold that.
 - **Tests** come with the change: a unit test for logic, and a test through the sample host for anything a host sees.
 - **CHANGELOG.md:** write what changes for someone using the packages under `## [Unreleased]`.
 

@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/samples/">
+    <Project Path="samples/AbpWorkflow.SampleHost/AbpWorkflow.SampleHost.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/AbpWorkflow.Contracts/AbpWorkflow.Contracts.csproj" />
+    <Project Path="src/AbpWorkflow/AbpWorkflow.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AbpWorkflow.Tests/AbpWorkflow.Tests.csproj" />
+    <Project Path="tests/AbpWorkflow.Host.Tests/AbpWorkflow.Host.Tests.csproj" />
+  </Folder>
+</Solution>

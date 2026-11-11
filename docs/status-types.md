@@ -2,7 +2,7 @@
 
 A status's type says what happens when an item comes in. Besides the built-ins (`manual`, `automated`, `decision`,
 `wait`, `approval`; see [Workflow definitions](definitions.md)), your host and plugins can add their own with
-`IWorkflowStatusType` from `Toda.Workflows.Contracts`.
+`IWorkflowStatusType` from `AbpWorkflow.Contracts`.
 
 - **Sync** (`StatusTypeModes.Sync`): does its work as the item comes in, inside the change that moved it, then leaves
   by an exit at once. For example: notify someone, compute a value, route by an outside answer.
